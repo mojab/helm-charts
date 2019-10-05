@@ -147,7 +147,7 @@ spec:
         image: "{{ .Values.image }}:{{ .Values.imageTag }}"
         command:
           - sh
-          - -c
+          - "-c"
           - |
             #!/usr/bin/env bash
             set -euo pipefail
