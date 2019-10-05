@@ -146,27 +146,27 @@ spec:
       - name: keystore
         image: "{{ .Values.image }}:{{ .Values.imageTag }}"
         command:
-        - sh
-        - -c
-        - |
-          #!/usr/bin/env bash
-          set -euo pipefail
+          - sh
+          - -c
+          - |
+            #!/usr/bin/env bash
+            set -euo pipefail
 
-          elasticsearch-keystore create
+            elasticsearch-keystore create
 
-          for i in /tmp/keystoreSecrets/*/*; do
-            key=$(basename $i)
-            echo "Adding file $i to keystore key $key"
-            elasticsearch-keystore add-file "$key" "$i"
-          done
+            for i in /tmp/keystoreSecrets/*/*; do
+              key=$(basename $i)
+              echo "Adding file $i to keystore key $key"
+              elasticsearch-keystore add-file "$key" "$i"
+            done
 
-          # Add the bootstrap password since otherwise the Elasticsearch entrypoint tries to do this on startup
-          if [ ! -z ${ELASTIC_PASSWORD+x} ]; then
-            echo 'Adding env $ELASTIC_PASSWORD to keystore as key bootstrap.password'
-            echo "$ELASTIC_PASSWORD" | elasticsearch-keystore add -x bootstrap.password
-          fi
+            # Add the bootstrap password since otherwise the Elasticsearch entrypoint tries to do this on startup
+            if [ ! -z ${ELASTIC_PASSWORD+x} ]; then
+              echo 'Adding env $ELASTIC_PASSWORD to keystore as key bootstrap.password'
+              echo "$ELASTIC_PASSWORD" | elasticsearch-keystore add -x bootstrap.password
+            fi
 
-          cp -a /usr/share/elasticsearch/config/elasticsearch.keystore /tmp/keystore/
+            cp -a /usr/share/elasticsearch/config/elasticsearch.keystore /tmp/keystore/
         env: {{ toYaml .Values.extraEnvs | nindent 10 }}
         resources: {{ toYaml .Values.initResources | nindent 10 }}
         volumeMounts:
@@ -295,40 +295,40 @@ spec:
         image: "{{ .Values.image }}:{{ .Values.imageTag }}"
         imagePullPolicy: "{{ .Values.imagePullPolicy }}"
         command:
-        - "sh"
-        - -c
-        - |
-          #!/usr/bin/env bash
-          set -eo pipefail
+          - "sh"
+          - -c
+          - |
+            #!/usr/bin/env bash
+            set -eo pipefail
 
-          http () {
-              local path="${1}"
-              if [ -n "${ELASTIC_USERNAME}" ] && [ -n "${ELASTIC_PASSWORD}" ]; then
-                BASIC_AUTH="-u ${ELASTIC_USERNAME}:${ELASTIC_PASSWORD}"
-              else
-                BASIC_AUTH=''
-              fi
-              curl -XGET -s -k --fail ${BASIC_AUTH} {{ .Values.protocol }}://{{ template "masterService" . }}:{{ .Values.httpPort }}${path}
-          }
+            http () {
+                local path="${1}"
+                if [ -n "${ELASTIC_USERNAME}" ] && [ -n "${ELASTIC_PASSWORD}" ]; then
+                  BASIC_AUTH="-u ${ELASTIC_USERNAME}:${ELASTIC_PASSWORD}"
+                else
+                  BASIC_AUTH=''
+                fi
+                curl -XGET -s -k --fail ${BASIC_AUTH} {{ .Values.protocol }}://{{ template "masterService" . }}:{{ .Values.httpPort }}${path}
+            }
 
-          cleanup () {
-            while true ; do
-              local master="$(http "/_cat/master?h=node" || echo "")"
-              if [[ $master == "{{ template "masterService" . }}"* && $master != "${NODE_NAME}" ]]; then
-                echo "This node is not master."
-                break
-              fi
-              echo "This node is still master, waiting gracefully for it to step down"
-              sleep 1
-            done
+            cleanup () {
+              while true ; do
+                local master="$(http "/_cat/master?h=node" || echo "")"
+                if [[ $master == "{{ template "masterService" . }}"* && $master != "${NODE_NAME}" ]]; then
+                  echo "This node is not master."
+                  break
+                fi
+                echo "This node is still master, waiting gracefully for it to step down"
+                sleep 1
+              done
 
-            exit 0
-          }
+              exit 0
+            }
 
-          trap cleanup SIGTERM
+            trap cleanup SIGTERM
 
-          sleep infinity &
-          wait $!
+            sleep infinity &
+            wait $!
         resources:
 {{ toYaml .Values.sidecarResources | indent 10 }}
         env:
