@@ -148,7 +148,7 @@ spec:
         command:
         - "sh"
         - "-c"
-        - |
+        - >
           #!/usr/bin/env bash
           set -euo pipefail
           elasticsearch-keystore create
@@ -188,7 +188,7 @@ spec:
             command:
               - "sh"
               - "-c"
-              - |
+              - >
                 #!/usr/bin/env bash -e
                 # If the node is starting up wait for the cluster to be ready (request params: '{{ .Values.clusterHealthCheckParams }}' )
                 # Once it has started only check that the node itself is responding
@@ -291,7 +291,7 @@ spec:
         command:
         - "sh"
         - "-c"
-        - |
+        - >
           #!/usr/bin/env bash
           set -eo pipefail
           http () {
